@@ -1,0 +1,2 @@
+"""HATTORI backend application package."""
+
