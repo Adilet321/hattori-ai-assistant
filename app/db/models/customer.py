@@ -10,6 +10,7 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.db.models.booking import Booking
+    from app.db.models.event import Event
 
 
 class Customer(Base):
@@ -41,6 +42,7 @@ class Customer(Base):
     )
 
     bookings: Mapped[list["Booking"]] = relationship(back_populates="customer")
+    events: Mapped[list["Event"]] = relationship(back_populates="customer")
 
     @validates("phone")
     def normalize_phone(self, _: str, value: str) -> str:

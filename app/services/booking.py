@@ -9,6 +9,7 @@ from app.db.models.booking import (
     BookingStateTransition,
     BookingStateTransitionInitiator,
 )
+from app.db.models.event import Event
 
 
 class InvalidBookingStateTransition(ValueError):
@@ -61,6 +62,7 @@ class BookingService:
     ) -> Booking:
         """Cancel an existing booking and create its replacement atomically."""
         booking = self._lock(booking)
+        old_starts_at = booking.starts_at
         self._apply_transition(booking, BookingState.CANCELLED, initiator)
 
         replacement = Booking(
@@ -75,6 +77,21 @@ class BookingService:
             rescheduled_from=booking,
         )
         self.session.add(replacement)
+        self.session.flush()
+        self.session.add(
+            Event(
+                event_type="booking.rescheduled",
+                customer=booking.customer,
+                booking=replacement,
+                initiator=initiator,
+                payload={
+                    "old_booking_id": booking.id,
+                    "new_booking_id": replacement.id,
+                    "old_starts_at": old_starts_at.isoformat(),
+                    "new_starts_at": replacement.starts_at.isoformat(),
+                },
+            )
+        )
         self.session.flush()
         return replacement
 
@@ -113,9 +130,17 @@ class BookingService:
                 initiator=initiator,
             )
         )
+        self.session.add(
+            Event(
+                event_type="booking.state_changed",
+                customer=booking.customer,
+                booking=booking,
+                initiator=initiator,
+                payload={"from_state": from_state.value, "to_state": to_state.value},
+            )
+        )
 
         if to_state is BookingState.COMPLETED:
             booking.customer.visit_count += 1
 
         return True
-

@@ -10,6 +10,7 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.db.models.customer import Customer
+    from app.db.models.event import Event
 
 
 class BookingState(str, Enum):
@@ -73,6 +74,7 @@ class Booking(Base):
     state_transitions: Mapped[list["BookingStateTransition"]] = relationship(
         back_populates="booking", cascade="all, delete-orphan"
     )
+    events: Mapped[list["Event"]] = relationship(back_populates="booking")
 
 
 class BookingStateTransition(Base):

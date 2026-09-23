@@ -5,6 +5,7 @@ from app.db.models.booking import (
     BookingStateTransitionInitiator,
 )
 from app.db.models.customer import Customer
+from app.db.models.event import Event
 
 __all__ = [
     "Booking",
@@ -12,4 +13,5 @@ __all__ = [
     "BookingStateTransition",
     "BookingStateTransitionInitiator",
     "Customer",
+    "Event",
 ]
